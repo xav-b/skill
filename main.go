@@ -28,8 +28,12 @@ type Options struct {
 }
 
 func bintrayURL(user, project, version string) string {
-  // TODO Detect
   return fmt.Sprintf("https://dl.bintray.com/%s/%s/%s_%s_%s_%s.zip", user, project, project, version, runtime.GOOS, runtime.GOARCH)
+}
+
+func githubURL(user, project, version, pkg string) string {
+  return fmt.Sprintf("https://github.com/%s/%s/releases/download/%s/%s",
+                     user, project, version, pkg)
 }
 
 func getOpts() *Options {
@@ -39,7 +43,7 @@ func getOpts() *Options {
 	}
   var opts = new(Options)
   flag.StringVar(&opts.Dest, "dest", ".", "Directory to unpack archive files")
-  flag.StringVar(&opts.Checksum, "checksum", "", "Archive checksum. Leave blank to skip this step")
+  flag.StringVar(&opts.Checksum, "checksum", "", "Archive checksum; leave blank to skip this step")
   flag.Parse()
 
   if len(flag.Args()) == 0 {
@@ -82,5 +86,6 @@ func main() {
       os.Exit(1)
     }
     log.Printf("done: %v bytes written", written)
+    // TODO Add execution permissions
   }
 }

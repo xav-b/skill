@@ -25,3 +25,8 @@ _testmain.go
 
 # compiled binary
 skill
+# private or irrelevant data
+_*
+.env
+bin/
+vendor/
