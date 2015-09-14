@@ -20,6 +20,9 @@ install: build
 lint:
 	docker exec -it $(PROJECT) gometalinter --exclude=vendor ./...
 
+tests: lint
+	docker exec -it $(PROJECT) go test -v
+
 clean:
 	docker stop $(PROJECT) && docker rm -v $(PROJECT)
 	rm -r ./bin

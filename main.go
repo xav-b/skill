@@ -1,11 +1,10 @@
 package main
 
 import (
-  "runtime"
   "flag"
   "log"
+  "fmt"
   "os"
-	"fmt"
 )
 
 var usage = `usage: %s [OPTIONS] <URL>
@@ -25,15 +24,6 @@ type Options struct {
   Dest string
   // TODO "github.com/jbenet/go-multihash"
   Checksum string
-}
-
-func bintrayURL(user, project, version string) string {
-  return fmt.Sprintf("https://dl.bintray.com/%s/%s/%s_%s_%s_%s.zip", user, project, project, version, runtime.GOOS, runtime.GOARCH)
-}
-
-func githubURL(user, project, version, pkg string) string {
-  return fmt.Sprintf("https://github.com/%s/%s/releases/download/%s/%s",
-                     user, project, version, pkg)
 }
 
 func getOpts() *Options {
@@ -63,7 +53,7 @@ func main() {
   opts := getOpts()
 
   if err := os.MkdirAll(opts.Dest, 0777); err != nil {
-		log.Printf("Unable to create directory: %s", opts.Dest)
+		log.Printf("Unable to create directory %s: %v\n", opts.Dest, err)
 		os.Exit(1)
 	}
 

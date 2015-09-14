@@ -11,7 +11,7 @@ import (
 )
 
 // Stolen from https://github.com/gosexy/checksum/blob/master/checksum.go
-func createHash(method string) hash.Hash {
+func hashLookup(method string) hash.Hash {
 	var h hash.Hash
 
 	switch method {
@@ -35,9 +35,10 @@ func createHash(method string) hash.Hash {
 	return h
 }
 
+// Checksum uses various methods to compute given content hash
 // TODO More methods https://github.com/gosexy/checksum/blob/master/checksum.go
 func Checksum(content []byte, method string) string {
-    hash := createHash(method)
+    hash := hashLookup(method)
     io.WriteString(hash, string(content))
     return fmt.Sprintf("%x", hash.Sum(nil))
 }

@@ -1,4 +1,6 @@
-# Skill
+# [Skill][releases]
+
+[![Circle CI](https://circleci.com/gh/hackliff/skill.svg?style=svg)](https://circleci.com/gh/hackliff/skill)
 
 > Teach your system a new trick
 
@@ -6,7 +8,7 @@
 
 ## Getting started (with docker)
 
-Installing relies currentely on Docker but binaries and instructions for building from source are coming soon.
+Installing relies currently on Docker but binaries and instructions for building from source are coming soon.
 
 ```sh
 # installation:
@@ -15,6 +17,9 @@ Installing relies currentely on Docker but binaries and instructions for buildin
 #   - copy the relevant one in /usr/local/bin
 make
 
+# testing
+make tests
+
 # Usage
 ./bin/skill-darwin-amd64 -help
 ./bin/skill-darwin-amd64 -dest bin https://dl.bintray.com/mitchellh/consul/0.5.2_darwin_amd64.zip
@@ -22,3 +27,4 @@ make
 
 [1]: https://bintray.com/
 [2]: https://github.com/blog/1547-release-your-software
+[releases]: https://github.com/hackliff/skill/releases
