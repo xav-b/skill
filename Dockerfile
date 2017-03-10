@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y unzip && \
   mv linux-amd64/glide $GOPATH/bin/ && \
   rm -r *linux-amd64*
 
-RUN go get github.com/alecthomas/gometalinter && \
-  gometalinter --install --update
+RUN go get github.com/alecthomas/gometalinter
+#RUN go get github.com/alecthomas/gometalinter && \
+#  gometalinter --install --update
 
 CMD ["wgo"]

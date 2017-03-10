@@ -1,10 +1,10 @@
 package main
 
 import (
-  "flag"
-  "log"
-  "fmt"
-  "os"
+	"flag"
+	"fmt"
+	"log"
+	"os"
 )
 
 var usage = `usage: %s [OPTIONS] <URL>
@@ -13,69 +13,69 @@ var usage = `usage: %s [OPTIONS] <URL>
 
 skill - teach your system a new trick.
 
-It downloads the archive at the given url and unpack its content
+It downloads (in-memory) the archive at the given url and unpack its content
 where you decide.
 
 OPTIONS:
 `
 
 type Options struct {
-  URL string
-  Dest string
-  // TODO "github.com/jbenet/go-multihash"
-  Checksum string
+	URL  string
+	Dest string
+	// TODO "github.com/jbenet/go-multihash"
+	Checksum string
 }
 
 func getOpts() *Options {
-  flag.Usage = func() {
+	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, usage, os.Args[0])
 		flag.PrintDefaults()
 	}
-  var opts = new(Options)
-  flag.StringVar(&opts.Dest, "dest", ".", "Directory to unpack archive files")
-  flag.StringVar(&opts.Checksum, "checksum", "", "Archive checksum; leave blank to skip this step")
-  flag.Parse()
+	var opts = new(Options)
+	flag.StringVar(&opts.Dest, "dest", ".", "Directory to unpack archive files")
+	flag.StringVar(&opts.Checksum, "checksum", "", "Archive checksum; leave blank to skip this step")
+	flag.Parse()
 
-  if len(flag.Args()) == 0 {
-    flag.Usage()
-    os.Exit(1)
-  }
+	if len(flag.Args()) == 0 {
+		flag.Usage()
+		os.Exit(1)
+	}
 
-  opts.URL = flag.Arg(0)
-  //opts.URL = "https://dl.bintray.com/mitchellh/vault/vault_0.1.0_linux_amd64.zip"
-  //opts.URL = bintrayURL("mitchellh", "vault", "0.1.0")
-  //opts.Checksum := "f6a8674a54f5b6288ba705bd21843cb1c848107e9ff6e7c17b4cc82cdb46789a"
+	opts.URL = flag.Arg(0)
+	//opts.URL = "https://dl.bintray.com/mitchellh/vault/vault_0.1.0_linux_amd64.zip"
+	//opts.URL = bintrayURL("mitchellh", "vault", "0.1.0")
+	//opts.Checksum := "f6a8674a54f5b6288ba705bd21843cb1c848107e9ff6e7c17b4cc82cdb46789a"
 
-  return opts
+	return opts
 }
 
 func main() {
-  opts := getOpts()
+	opts := getOpts()
 
-  if err := os.MkdirAll(opts.Dest, 0777); err != nil {
+	if err := os.MkdirAll(opts.Dest, 0777); err != nil {
 		log.Printf("Unable to create directory %s: %v\n", opts.Dest, err)
 		os.Exit(1)
 	}
 
-  // TODO Spinner:
-  //    - https://github.com/briandowns/spinner
-  //    - https://github.com/tj/go-spin
-  //    - https://github.com/tj/stack/blob/master/pkg/logger
-  log.Printf("downloading archive at %s", opts.URL)
-  pack, err := Download(opts.URL, opts.Checksum)
-  if err != nil {
-    log.Printf("error: %v\n", err)
-    os.Exit(1)
-  }
+	// TODO Spinner:
+	//    - https://github.com/briandowns/spinner
+	//    - https://github.com/tj/go-spin
+	//    - https://github.com/tj/stack/blob/master/pkg/logger
+	log.Printf("downloading archive at %s", opts.URL)
+	pack, err := Download(opts.URL, opts.Checksum)
+	if err != nil {
+		log.Printf("error: %v\n", err)
+		os.Exit(1)
+	}
 
-  for _, zf := range pack.File {
-    log.Printf("saving %s into %s", zf.Name, opts.Dest)
-    written, err := ToDisk(zf, opts.Dest)
-    if err != nil {
-      log.Printf("error: %v\n", err)
-      os.Exit(1)
-    }
-    log.Printf("done: %v bytes written", written)
-    // TODO Add execution permissions
-  }
+	for _, zf := range pack.File {
+		log.Printf("saving %s into %s", zf.Name, opts.Dest)
+		written, err := ToDisk(zf, opts.Dest)
+		if err != nil {
+			log.Printf("error: %v\n", err)
+			os.Exit(1)
+		}
+		log.Printf("done: %v bytes written", written)
+		// TODO Add execution permissions
+	}
 }
