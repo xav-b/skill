@@ -21,5 +21,5 @@ function download_binary() {
 }
 
 download_binary ${CLIPER_VERSION:-"${LATEST_VERSION}"}
-echo "done: $(command -v cliper)"
+echo "done: $(command -v ${PROJECT})"
 

@@ -1,59 +1,26 @@
 package main
 
 import (
-	"flag"
-	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
+	"path"
+	"strings"
+
+	"github.com/c4milo/unzipit"
 )
 
-var usage = `usage: %s [OPTIONS] <URL>
+const RWX_FILE = 0755
+const FULL_FILE = 0777
 
-  skill -dest bin https://dl.bintray......package.zip
-
-skill - teach your system a new trick.
-
-It downloads (in-memory) the archive at the given url and unpack its content
-where you decide.
-
-OPTIONS:
-`
-
-type Options struct {
-	URL  string
-	Dest string
-	// TODO "github.com/jbenet/go-multihash"
-	Checksum string
-}
-
-func getOpts() *Options {
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, usage, os.Args[0])
-		flag.PrintDefaults()
-	}
-	var opts = new(Options)
-	flag.StringVar(&opts.Dest, "dest", ".", "Directory to unpack archive files")
-	flag.StringVar(&opts.Checksum, "checksum", "", "Archive checksum; leave blank to skip this step")
-	flag.Parse()
-
-	if len(flag.Args()) == 0 {
-		flag.Usage()
-		os.Exit(1)
-	}
-
-	opts.URL = flag.Arg(0)
-	//opts.URL = "https://dl.bintray.com/mitchellh/vault/vault_0.1.0_linux_amd64.zip"
-	//opts.URL = bintrayURL("mitchellh", "vault", "0.1.0")
-	//opts.Checksum := "f6a8674a54f5b6288ba705bd21843cb1c848107e9ff6e7c17b4cc82cdb46789a"
-
-	return opts
-}
+var EXTENSIONS = []string{"zip", "tar.gz"}
 
 func main() {
 	opts := getOpts()
 
-	if err := os.MkdirAll(opts.Dest, 0777); err != nil {
-		log.Printf("Unable to create directory %s: %v\n", opts.Dest, err)
+	if err := os.MkdirAll(opts.Out, FULL_FILE); err != nil {
+		log.Printf("Unable to create directory %s: %v\n", opts.Out, err)
 		os.Exit(1)
 	}
 
@@ -62,20 +29,35 @@ func main() {
 	//    - https://github.com/tj/go-spin
 	//    - https://github.com/tj/stack/blob/master/pkg/logger
 	log.Printf("downloading archive at %s", opts.URL)
-	pack, err := Download(opts.URL, opts.Checksum)
+	// TODO Bring back checksum check
+	//stream, err := Download(opts.URL, opts.Checksum)
+	res, err := http.Get(opts.URL)
 	if err != nil {
 		log.Printf("error: %v\n", err)
 		os.Exit(1)
 	}
 
-	for _, zf := range pack.File {
-		log.Printf("saving %s into %s", zf.Name, opts.Dest)
-		written, err := ToDisk(zf, opts.Dest)
-		if err != nil {
-			log.Printf("error: %v\n", err)
-			os.Exit(1)
+	// TODO can force extention from the cli
+	for _, ext := range EXTENSIONS {
+		if strings.HasSuffix(opts.URL, ext) {
+			_, err := unzipit.UnpackStream(res.Body, opts.Out)
+			if err != nil {
+				log.Printf("error: %v\n", err)
+				os.Exit(1)
+			}
+			log.Printf("wrote file to %s\n", opts.Out)
+			return
 		}
-		log.Printf("done: %v bytes written", written)
-		// TODO Add execution permissions
 	}
+
+	// else
+	buf, _ := ioutil.ReadAll(res.Body)
+	partials := strings.Split(opts.URL, "/")
+	filename := partials[len(partials)-1]
+	if err := ioutil.WriteFile(path.Join(opts.Out, filename), buf, RWX_FILE); err != nil {
+		log.Printf("error: %v\n", err)
+		os.Exit(1)
+	}
+
+	log.Printf("wrote file to %s\n", opts.Out)
 }
